@@ -1,4 +1,4 @@
-# FastAPI app - webhook receiver + online scoring + simple customer endpoint
+# backend/app/main.py
 import os
 import datetime
 import joblib
@@ -8,13 +8,21 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
 from .db import init_db, insert_event, get_customer_events, get_customer_features
 
 app = FastAPI(title="Customer Journey MVP")
 
-MODEL_PATH = os.getenv("MODEL_PATH", "../models/xgb_churn.pkl")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Lazy load model
+MODEL_PATH = os.getenv("MODEL_PATH", "/app/models/xgb_churn.pkl")
+
 model = None
 
 def load_model():
@@ -39,30 +47,23 @@ async def startup_event():
 
 @app.post("/webhook/event")
 async def webhook_event(payload: EventPayload):
-    # Write event to DB
     ts = payload.timestamp or datetime.datetime.utcnow()
     insert_event(payload.customer_id, payload.event_type, payload.properties, ts)
-    # TODO: push to Redis/Kafka for online processing
     return {"status": "accepted", "customer_id": payload.customer_id}
 
 @app.post("/score/online")
 async def score_online(payload: dict):
-    # payload should contain precomputed features in the same order as training
-    model = load_model()
-    if model is None:
+    model_inst = load_model()
+    if model_inst is None:
         raise HTTPException(status_code=503, detail="Model not available")
-
-    import pandas as pd
-    X = pd.DataFrame([payload["features"]])
-    dmatrix = model.DMatrix(X) if hasattr(model, 'DMatrix') else None
+    X = pd.DataFrame([payload.get("features", {})])
     try:
-        # handle sklearn-like or xgboost-like
-        if hasattr(model, 'predict_proba'):
-            prob = float(model.predict_proba(X)[:,1][0])
+        if hasattr(model_inst, "predict_proba"):
+            prob = float(model_inst.predict_proba(X)[:, 1][0])
         else:
-            prob = float(model.predict(X)[0])
-    except Exception:
-        prob = float(model.predict(X)[0])
+            prob = float(model_inst.predict(X)[0])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction error: {e}")
     return {"churn_prob": prob}
 
 @app.get("/customers/{customer_id}/journey")
@@ -75,19 +76,10 @@ async def customer_features(customer_id: str):
     feats = get_customer_features(customer_id)
     return {"customer_id": customer_id, "features": feats}
 
+@app.post("/upload_csv")
+async def upload_csv(file: UploadFile = File(...)):
+    df = pd.read_csv(file.file)
+    return {"filename": file.filename, "rows": int(df.shape[0])}
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)   
-
-@app.post("/upload_csv  ")
-async def upload_csv(file: UploadFile = File(...)):
-    contents = pd.reaad_csv(file.file)
-    # Process the CSV contents
-    return {"filename": file.filename, "rows": len(contents.splitlines())}
