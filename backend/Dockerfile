@@ -7,7 +7,7 @@ WORKDIR /app
 RUN pip install --upgrade pip
 
 # Install Redis first to avoid potential conflicts
-RUN pip install redis==6.0.0
+RUN pip install python-multipart
 
 # Copy the requirements file into the container
 COPY requirements.txt .
