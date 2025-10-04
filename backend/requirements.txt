@@ -4,7 +4,7 @@ sqlalchemy==2.0.31
 psycopg2-binary==2.9.6
 pydantic==2.7.1
 alembic==1.11.1
-redis==4.7.2
+redis 
 pandas==2.2.2
 scikit-learn==1.3.2
 xgboost==1.7.6

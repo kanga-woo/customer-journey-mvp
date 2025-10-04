@@ -1,29 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meat charset="UTFF-8"  />
-        <meta name="viewwport" content="width=device-width, initial-scale=1.0" />
-        <title>Customer Journey MVP</title>
-        <link rel="stylesheet" href="styles.css" /> 
-        <script defer src="app.js"></script>    
-    </head>
-    <body>
-        <header>
-            <h1>Customer Journey MVP</h1>
-        </header>
-        <main>
-            <section id="upload-section">
-                <h2>Upload Customer Journey Data</h2>
-                <input type="file" id="file-input" accept=".json,.csv" />
-                <button id="upload-button">Upload</button>
-            </section>
-            <section id="visualization-section">
-                <h2>Customer Journey Visualization</h2>
-                <div id="visualization-container">
-                    <!-- Visualization will be rendered here -->
+
+<head>
+    <!-- Meta Information -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Customer Journey MVP - Visualizing customer data for better insights" />
+    <title>Customer Journey MVP</title>
+    
+    <!-- Link to external stylesheet -->
+    <link rel="stylesheet" href="styles.css" />
+    
+    <!-- Defer script for better page load performance -->
+    <script defer src="app.js"></script>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1 class="site-title">Customer Journey MVP</h1>
+            <p class="tagline">Visualize and analyze customer journey data for enhanced insights.</p>
+        </div>
+    </header>
+
+    <main>
+        <section id="upload-section" class="section">
+            <div class="container">
+                <h2 class="section-title">Upload Customer Journey Data</h2>
+                <p class="section-description">Select a file to upload customer journey data in JSON or CSV format.</p>
+                <input type="file" id="file-input" class="file-input" accept=".json,.csv" />
+                <button id="upload-button" class="btn btn-primary">Upload Data</button>
+            </div>
+        </section>
+
+        <section id="visualization-section" class="section">
+            <div class="container">
+                <h2 class="section-title">Customer Journey Visualization</h2>
+                <p class="section-description">Your uploaded data will be visualized below.</p>
+                <div id="visualization-container" class="visualization-container">
+                    <!-- Dynamic visualization will appear here -->
                 </div>
-            </section>
-        </main>
-        <footer>
-            <p>&copy; 2025 Customer Journey MVP</p>
-        </footer>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Customer Journey MVP. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+
+</html>
