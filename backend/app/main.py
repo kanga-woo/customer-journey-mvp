@@ -5,7 +5,7 @@ import joblib
 import uvicorn
 import pandas as pd
 
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -40,14 +40,15 @@ class EventPayload(BaseModel):
     properties: dict = {}
     timestamp: datetime.datetime = None
 
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     init_db()
     load_model()
+    yield
 
 @app.post("/webhook/event")
 async def webhook_event(payload: EventPayload):
-    ts = payload.timestamp or datetime.datetime.utcnow()
+    ts = payload.timestamp or datetime.datetime.now()
     insert_event(payload.customer_id, payload.event_type, payload.properties, ts)
     return {"status": "accepted", "customer_id": payload.customer_id}
 
